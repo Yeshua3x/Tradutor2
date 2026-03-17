@@ -1,0 +1,30 @@
+{
+    "hello": {
+        "translation": "olá",
+        "relevant": ["greeting", "welcome"]
+    },
+    "world": {
+        "translation": "mundo",
+        "relevant": ["planet", "earth"]
+    },
+    "dog": {
+        "translation": "cachorro",
+        "relevant": ["animal", "pet"]
+    },
+    "cat": {
+        "translation": "gato",
+        "relevant": ["animal", "pet"]
+    },
+    "house": {
+        "translation": "casa",
+        "relevant": ["building", "home"]
+    },
+    "car": {
+        "translation": "carro",
+        "relevant": ["vehicle", "transport"]
+    },
+    "friend": {
+        "translation": "amigo",
+        "relevant": ["companion", "buddy"]
+    }
+}
