@@ -49,14 +49,16 @@
                 `;
 
                 // Quebra as frases em palavras relevantes
-                const wordsPt = pt.replace(/\W/g, ' ').split(' ');
-                const wordsEn = en.replace(/\W/g, ' ').split(' ');
+                const wordsPt = pt.replace(/\W/g, ' ').toLowerCase().split(' ').filter(Boolean);
+                const wordsEn = en.replace(/\W/g, ' ').toLowerCase().split(' ').filter(Boolean);
 
-                // Adiciona palavras ao dicionário
+                // Adiciona palavras ao dicionário garantindo que não hajam duplicatas
                 wordsEn.forEach((word, index) => {
                     if (word) {
                         const ptWord = wordsPt[index] || '';
-                        dictionaryWords[word.toLowerCase()] = ptWord; // Usa toLowerCase para evitar duplicatas
+                        if (!dictionaryWords[word]) { // evita duplicatas
+                            dictionaryWords[word] = ptWord;
+                        }
                     }
                 });
             });
