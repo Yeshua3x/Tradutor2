@@ -3,83 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dicionário de Traduções</title>
+    <title>🆕 Editor de Frases com Dicionário Automático</title>
     <style>
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: #333;
         }
-        .translation {
-            margin-bottom: 20px;
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 {
+            text-align: center; color: white; margin-bottom: 10px; font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle { text-align: center; color: rgba(255,255,255,0.9); font-size: 1.2em; margin-bottom: 30px; }
+        .phrase-container {
+            background: white; margin: 20px 0; padding: 25px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease;
+            border-left: 5px solid #3498db;
+        }
+        .phrase-container:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .phrase-inputs { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .english-input, .portuguese-input {
+            flex: 1; min-width: 300px; padding: 12px 15px; border: 2px solid #ddd;
+            border-radius: 8px; font-size: 16px; transition: border-color 0.3s ease;
+        }
+        .english-input:focus, .portuguese-input:focus {
+            outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         .dictionary {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 20px;
+            border-radius: 10px; margin-top: 15px; border-left: 4px solid #27ae60;
+            animation: slideIn 0.3s ease;
         }
-        h2 {
-            color: #333;
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .word-entry {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #dee2e6;
+        }
+        .word-entry:last-child { border-bottom: none; }
+        .word-en { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+        .word-pt { color: #27ae60; font-weight: 500; }
+        .controls { text-align: center; margin: 30px 0; }
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none;
+            padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px;
+            font-weight: 600; margin: 0 10px; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4); }
+        button:active { transform: translateY(0); }
+        .remove-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 8px 12px;
+            font-size: 14px; margin-left: 10px;
+        }
+        .status { text-align: center; color: #27ae60; font-weight: bold; margin: 10px 0; }
+        .error { color: #e74c3c; }
+        @media (max-width: 768px) {
+            .phrase-inputs { flex-direction: column; }
+            h1 { font-size: 2em; }
         }
     </style>
 </head>
 <body>
-
-    <h1>Traduções</h1>
-    <div id="translations"></div>
-    <div class="dictionary">
-        <h2>Dicionário de Palavras</h2>
-        <ul id="dictionary"></ul>
+    <div class="container">
+        <h1>🆕 Editor de Frases Inteligente</h1>
+        <p class="subtitle">Frases carregadas de tradutor.json | Edição em tempo real!</p>
+        
+        <div id="status" class="status">🔄 Carregando frases...</div>
+        <div id="phrases-container"></div>
+        
+        <div class="controls">
+            <button onclick="addNewPhrase()">➕ Nova Frase</button>
+            <button onclick="clearAllDictionaries()">🗑️ Limpar Dicionários</button>
+            <button onclick="savePhrases()">💾 Salvar no JSON</button>
+        </div>
     </div>
 
     <script>
-        // Função para gerar traduções e dicionário
-        function generateTranslationsAndDictionary(translations) {
-            const translationsContainer = document.getElementById('translations');
-            const dictionaryContainer = document.getElementById('dictionary');
-            const dictionaryWords = {};
+        let phrases = [];
+        let phraseCounter = 0;
+        let isLoaded = false;
 
-            translations.forEach(({ pt, en }) => {
-                // Adiciona a tradução ao HTML
-                translationsContainer.innerHTML += `
-                    <div class="translation">
-                        <p><strong>Em português:</strong> ${pt}</p>
-                        <p><strong>In English:</strong> ${en}</p>
-                    </div>
-                `;
+        // Dicionário expandido
+        const DICTIONARY = {
+            quick: 'rápido', fast: 'rápido', slow: 'lento', big: 'grande', small: 'pequeno',
+            beautiful: 'belo', ugly: 'feio', happy: 'feliz', sad: 'triste', tall: 'alto',
+            short: 'baixo', hot: 'quente', cold: 'frio', new: 'novo', old: 'velho',
+            good: 'bom', bad: 'ruim', interesting: 'interessante', boring: 'chato', clear: 'claro',
+            dark: 'escuro', bright: 'brilhante', brown: 'marrom', red: 'vermelho', blue: 'azul',
+            green: 'verde', yellow: 'amarelo', black: 'preto', white: 'branco',
+            fox: 'raposa', dog: 'cão', cat: 'gato', book: 'livro', books: 'livros',
+            house: 'casa', car: 'carro', mountain: 'montanha', lake: 'lago', river: 'rio',
+            tree: 'árvore', flower: 'flor', sun: 'sol', moon: 'lua', star: 'estrela', sky: 'céu',
+            city: 'cidade', people: 'pessoas', child: 'criança', jumps: 'pula', runs: 'corre',
+            walks: 'caminha', reads: 'lê', writes: 'escreve', speaks: 'fala', listens: 'escuta',
+            sees: 'vê', reflects: 'reflete', shines: 'brilha', flows: 'flui',
+            morning: 'manhã', afternoon: 'tarde', evening: 'noite', night: 'noite'
+        };
 
-                // Quebra as frases em palavras relevantes
-                const wordsPt = pt.replace(/\W/g, ' ').toLowerCase().split(' ').filter(Boolean);
-                const wordsEn = en.replace(/\W/g, ' ').toLowerCase().split(' ').filter(Boolean);
+        function extractRelevantWords(phrase) {
+            const words = phrase.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(word => word.length > 2);
+            return words.filter(word => DICTIONARY[word]);
+        }
 
-                // Adiciona palavras ao dicionário garantindo que não hajam duplicatas
-                wordsEn.forEach((word, index) => {
-                    if (word) {
-                        const ptWord = wordsPt[index] || '';
-                        if (!dictionaryWords[word]) { // evita duplicatas
-                            dictionaryWords[word] = ptWord;
-                        }
-                    }
-                });
-            });
+        function generateDictionary(englishPhrase) {
+            if (!englishPhrase.trim()) return '';
+            const words = extractRelevantWords(englishPhrase);
+            if (words.length === 0) return '<em>Nenhuma palavra relevante encontrada.</em>';
+            return '<strong>📚 Palavras relevantes (' + words.length + '):</strong><br>' +
+                words.map(word => 
+                    `<div class="word-entry">
+                        <span class="word-en">${word}</span> → 
+                        <span class="word-pt">${DICTIONARY[word]}</span>
+                    </div>`
+                ).join('');
+        }
 
-            // Adiciona as palavras ao dicionário no HTML
-            for (const [enWord, ptWord] of Object.entries(dictionaryWords)) {
-                dictionaryContainer.innerHTML += `<li><strong>${enWord}</strong> - ${ptWord}</li>`;
+        async function loadPhrases() {
+            try {
+                const response = await fetch('tradutor.json');
+                if (!response.ok) throw new Error('Arquivo não encontrado');
+                phrases = await response.json();
+                phraseCounter = phrases.length;
+                renderPhrases();
+                document.getElementById('status').textContent = `✅ ${phrases.length} frases carregadas!`;
+                isLoaded = true;
+            } catch (error) {
+                console.warn('tradutor.json não encontrado, usando frases padrão');
+                phrases = [
+                    { id: 0, english: 'The quick brown fox jumps over the lazy dog.', portuguese: 'A rápida raposa marrom pula sobre o cão preguiçoso.' },
+                    { id: 1, english: 'She reads interesting books every evening.', portuguese: 'Ela lê livros interessantes todas as noites.' },
+                    { id: 2, english: 'The beautiful mountain reflects in the clear lake.', portuguese: 'A bela montanha reflete no lago claro.' }
+                ];
+                phraseCounter = phrases.length;
+                renderPhrases();
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').textContent = '⚠️ Usando frases padrão (crie tradutor.json)';
             }
         }
 
-        // Função para carregar o JSON e chamar a geração
-        function loadTranslations() {
-            fetch('tradutor.json')
-                .then(response => response.json())
-                .then(data => generateTranslationsAndDictionary(data))
-                .catch(error => console.error('Erro ao carregar o arquivo JSON:', error));
+        function renderPhrases() {
+            const container = document.getElementById('phrases-container');
+            container.innerHTML = phrases.map(renderPhrase).join('');
         }
 
-        // Chama a função para carregar traduções
-        loadTranslations();
-    </script>
+        function renderPhrase(phraseData) {
+            const dictHtml = generateDictionary(phraseData.english);
+            return `
+                <div class="phrase-container" data-phrase-id="${phraseData.id}">
+                    <div class="phrase-inputs">
+                        <input type="text" class="english-input" 
+                               value="${phraseData.english}" 
+                               placeholder="Frase em inglês..." 
+                               oninput="updateDictionary(${phraseData.id}, this.value, this.parentElement.querySelector('.portuguese-input').value)">
+                        <input type="text" class="portuguese-input" 
+                               value="${phraseData.portuguese}" 
+                               placeholder="Tradução em português...">
+                    </div>
+                    <button class="remove-btn" onclick="removePhrase(${phraseData.id})">❌ Remover</button>
+                    <div id="dict-${phraseData.id}" class="dictionary" style="display: ${dictHtml ? 'block' : 'none'};">
+                        ${dictHtml || '<em>Digite uma frase para ver o dicionário...</em>'}
+                    </div>
+                </div>
+            `;
+        }
 
+        function updateDictionary(id, english, portuguese) {
+            const phraseIndex = phrases.findIndex(p => p.id === id);
+            if (phraseIndex !== -1) {
+                phrases[phraseIndex].english = english;
+                phrases[phraseIndex].portuguese = portuguese;
+            }
+            const dictDiv = document.getElementById(`dict-${id}`);
+            const newDict = generateDictionary(english);
+            dictDiv.innerHTML = newDict || '<em>Digite uma frase para ver o dicionário...</em>';
+            dictDiv.style.display = newDict ? 'block' : 'none';
+        }
+
+        function addNewPhrase() {
+            const newId = ++phraseCounter;
+            phrases.push({ id: newId, english: '', portuguese: '' });
+            renderPhrases();
+        }
+
+        window.removePhrase = function(id) {
+            const index = phrases.findIndex(p => p.id === id);
+            if (index > -1) {
+                phrases.splice(index, 1);
+                renderPhrases();
+            }
+        };
+
+        window.clearAllDictionaries = function() {
+            document.querySelectorAll('.dictionary').forEach(div => {
+                div.style.display = 'none';
+            });
+        };
+
+        window.savePhrases = async function() {
+            try {
+                const response = await fetch('tradutor.json', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(phrases, null, 2)
+                });
+                if (response.ok) {
+                    alert('✅ Frases salvas em tradutor.json!');
+                } else {
+                    // Fallback: download
+                    const dataStr = JSON.stringify(phrases, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'tradutor.json';
+                    link.click();
+                    alert('📥 tradutor.json baixado! Salve no mesmo diretório.');
+                }
+            } catch (e) {
+                // Download fallback
+                const dataStr = JSON.stringify(phrases, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'tradutor.json';
+                link.click();
+                alert('📥 tradutor.json baixado! Salve no mesmo diretório.');
+            }
+        };
+
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', loadPhrases);
+    </script>
 </body>
 </html>
