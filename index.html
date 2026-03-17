@@ -56,7 +56,7 @@
                 wordsEn.forEach((word, index) => {
                     if (word) {
                         const ptWord = wordsPt[index] || '';
-                        dictionaryWords[word.toLowerCase()] = ptWord;
+                        dictionaryWords[word.toLowerCase()] = ptWord; // Usa toLowerCase para evitar duplicatas
                     }
                 });
             });
