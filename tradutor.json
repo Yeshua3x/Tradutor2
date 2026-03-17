@@ -1,14 +1,22 @@
 [
-    {
-        "pt": "Embed é usado para incorporar vídeos ou mídias que você tem no seu dispositivo, permitindo um uso mais particular e personalizado.",
-        "en": "Embed is used to incorporate videos or media that you have on your device, allowing for a more personal and customized use."
-    },
-    {
-        "pt": "Iframe, por outro lado, permite que você integre conteúdo de outras páginas, como vídeos do YouTube, onde você apenas usa o ID do vídeo na URL do iframe.",
-        "en": "Iframe, on the other hand, allows you to integrate content from other pages, such as YouTube videos, where you simply use the video ID in the iframe URL."
-    },
-    {
-        "pt": "Assim, embed é mais para conteúdo pessoal e local, enquanto iframe é ideal para conteúdos externos e interativos.",
-        "en": "Thus, embed is more for personal and local content, while iframe is ideal for external and interactive content."
-    }
+  {
+    "id": 0,
+    "english": "The quick brown fox jumps over the lazy dog.",
+    "portuguese": "A rápida raposa marrom pula sobre o cão preguiçoso."
+  },
+  {
+    "id": 1,
+    "english": "She reads interesting books every evening.",
+    "portuguese": "Ela lê livros interessantes todas as noites."
+  },
+  {
+    "id": 2,
+    "english": "The beautiful mountain reflects in the clear lake.",
+    "portuguese": "A bela montanha reflete no lago claro."
+  },
+  {
+    "id": 3,
+    "english": "The happy child runs in the green park.",
+    "portuguese": "A criança feliz corre no parque verde."
+  }
 ]
