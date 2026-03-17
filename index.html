@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dicionário de Traduções</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        .translation {
+            margin-bottom: 20px;
+        }
+        .dictionary {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Traduções</h1>
+    <div id="translations"></div>
+    <div class="dictionary">
+        <h2>Dicionário de Palavras</h2>
+        <ul id="dictionary"></ul>
+    </div>
+
+    <script>
+        // Função para gerar traduções e dicionário
+        function generateTranslationsAndDictionary(translations) {
+            const translationsContainer = document.getElementById('translations');
+            const dictionaryContainer = document.getElementById('dictionary');
+            const dictionaryWords = {};
+
+            translations.forEach(({ pt, en }) => {
+                // Adiciona a tradução ao HTML
+                translationsContainer.innerHTML += `
+                    <div class="translation">
+                        <p><strong>Em português:</strong> ${pt}</p>
+                        <p><strong>In English:</strong> ${en}</p>
+                    </div>
+                `;
+
+                // Quebra as frases em palavras relevantes
+                const wordsPt = pt.replace(/\W/g, ' ').split(' ');
+                const wordsEn = en.replace(/\W/g, ' ').split(' ');
+
+                // Adiciona palavras ao dicionário
+                wordsEn.forEach((word, index) => {
+                    if (word) {
+                        const ptWord = wordsPt[index] || '';
+                        dictionaryWords[word.toLowerCase()] = ptWord;
+                    }
+                });
+            });
+
+            // Adiciona as palavras ao dicionário no HTML
+            for (const [enWord, ptWord] of Object.entries(dictionaryWords)) {
+                dictionaryContainer.innerHTML += `<li><strong>${enWord}</strong> - ${ptWord}</li>`;
+            }
+        }
+
+        // Função para carregar o JSON e chamar a geração
+        function loadTranslations() {
+            fetch('tradutor.json')
+                .then(response => response.json())
+                .then(data => generateTranslationsAndDictionary(data))
+                .catch(error => console.error('Erro ao carregar o arquivo JSON:', error));
+        }
+
+        // Chama a função para carregar traduções
+        loadTranslations();
+    </script>
+
+</body>
+</html>
